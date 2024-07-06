@@ -1,0 +1,182 @@
+
+1. Find the names of customers who have placed an order.
+   - Write a sub-query to get the customer numbers of customers who have placed an order.
+   - Use the sub-query to get the names of these customers.
+
+2. List the product codes and names of products that have never been ordered.
+   - Write a sub-query to get the product codes of products that have been ordered.
+   - Use the sub-query to get the names of products that have never been ordered.
+
+3. Retrieve the office codes of offices that have employees who do not report to anyone.
+   - Write a sub-query to get the employee numbers of employees who do not report to anyone.
+   - Use the sub-query to get the office codes of these employees.
+
+4. Find the order numbers of orders that have at least one product with a price each greater than the MSRP of the product.
+   - Write a sub-query to get the MSRP of each product.
+   - Use the sub-query to get the order numbers of orders meeting the condition.
+
+5. Get the names of employees who have offices in the same city as their office.
+   - Write a sub-query to get the city of each office.
+   - Use the sub-query to get the names of employees working in those cities.
+
+6. Find the customer numbers of customers who have never made a payment.
+   - Write a sub-query to get the customer numbers of customers who have made a payment.
+   - Use the sub-query to find the customer numbers of customers who have never made a payment.
+
+7. Retrieve the product codes and names of products that have been ordered more than 100 times.
+   - Write a sub-query to get the product codes of products ordered more than 100 times.
+   - Use the sub-query to get the names of these products.
+
+8. List the office codes and cities of offices that have more than five employees.
+   - Write a sub-query to get the office codes of offices with more than five employees.
+   - Use the sub-query to get the cities of these offices.
+
+9. Find the names of customers who have placed orders with a total amount greater than $1000.
+   - Write a sub-query to get the order numbers of orders with a total amount greater than $1000.
+   - Use the sub-query to get the names of the customers who placed these orders.
+
+10. Retrieve the employee numbers and names of employees who report directly to the President.
+    - Write a sub-query to get the employee number of the President.
+    - Use the sub-query to get the names of employees who report to the President.
+
+11. List the order numbers of orders placed by customers from the same country as their office.
+    - Write a sub-query to get the country of each customer.
+    - Use the sub-query to get the order numbers of orders placed by customers from the same country as their office.
+
+12. Find the product codes and names of products that have a quantity in stock less than the average quantity in stock.
+    - Write a sub-query to get the average quantity in stock of all products.
+    - Use the sub-query to get the names of products with a quantity in stock less than the average.
+
+13. Retrieve the employee numbers and names of employees who work in offices located in the USA.
+    - Write a sub-query to get the office codes of offices located in the USA.
+    - Use the sub-query to get the names of employees working in those offices.
+
+14. List the customer numbers and names of customers who have placed more than three orders.
+    - Write a sub-query to get the customer numbers of customers who have placed more than three orders.
+    - Use the sub-query to get the names of these customers.
+
+15. Find the names of employees who do not have an email address.
+    - Write a sub-query to get the employee numbers of employees who do not have an email address.
+    - Use the sub-query to get the names of these employees.
+
+16. Retrieve the order numbers of orders with products from more than one product line.
+    - Write a sub-query to get the product lines of products in each order.
+    - Use the sub-query to get the order numbers of orders with products from more than one product line.
+
+17. List the employee numbers and names of employees who have the same job title as their manager.
+    - Write a sub-query to get the job titles of managers.
+    - Use the sub-query to get the names of employees with the same job title as their manager.
+
+18. Find the customer numbers of customers whose sales representative is located in a different office.
+    - Write a sub-query to get the office codes of sales representatives.
+    - Use the sub-query to get the customer numbers of customers whose sales representative is located in a different office.
+
+19. Retrieve the product codes and names of products supplied by more than one vendor.
+    - Write a sub-query to get the vendors of each product.
+    - Use the sub-query to get the names of products supplied by more than one vendor.
+
+20. List the order numbers of orders placed in the last 30 days.
+    - Write a sub-query to get the order dates of orders placed in the last 30 days.
+    - Use the sub-query to get the order numbers of these orders.
+
+Solutions:
+
+1. 
+   SELECT customerName
+   FROM customers
+   WHERE customerNumber IN (SELECT DISTINCT customerNumber FROM orders);
+
+2. 
+   SELECT productCode, productName
+   FROM products
+   WHERE productCode NOT IN (SELECT DISTINCT productCode FROM orderdetails);
+
+3. 
+   SELECT officeCode
+   FROM employees
+   WHERE employeeNumber IN (SELECT employeeNumber FROM employees WHERE reportsTo IS NULL);
+
+4. 
+   SELECT orderNumber
+   FROM orderdetails
+   WHERE priceEach > (SELECT MSRP FROM products WHERE products.productCode = orderdetails.productCode);
+
+5. 
+   SELECT firstName, lastName
+   FROM employees
+   WHERE officeCode IN (SELECT officeCode FROM offices WHERE offices.city = employees.city);
+
+6. 
+   SELECT customerNumber
+   FROM customers
+   WHERE customerNumber NOT IN (SELECT DISTINCT customerNumber FROM payments);
+
+7. 
+   SELECT productCode, productName
+   FROM products
+   WHERE productCode IN (SELECT productCode FROM orderdetails GROUP BY productCode HAVING SUM(quantityOrdered) > 100);
+
+8. 
+   SELECT officeCode, city
+   FROM offices
+   WHERE officeCode IN (SELECT officeCode FROM employees GROUP BY officeCode HAVING COUNT(employeeNumber) > 5);
+
+9. 
+   SELECT customerName
+   FROM customers
+   WHERE customerNumber IN (SELECT customerNumber FROM orders WHERE orderNumber IN (SELECT orderNumber FROM orderdetails GROUP BY orderNumber HAVING SUM(priceEach * quantityOrdered) > 1000));
+
+10. 
+    SELECT employeeNumber, firstName, lastName
+    FROM employees
+    WHERE reportsTo = (SELECT employeeNumber FROM employees WHERE jobTitle = 'President');
+
+11. 
+    SELECT orderNumber
+    FROM orders
+    WHERE customerNumber IN (SELECT customerNumber FROM customers WHERE country = (SELECT country FROM offices WHERE offices.officeCode = customers.salesRepEmployeeNumber));
+
+12. 
+    SELECT productCode, productName
+    FROM products
+    WHERE quantityInStock < (SELECT AVG(quantityInStock) FROM products);
+
+13. 
+    SELECT employeeNumber, firstName, lastName
+    FROM employees
+    WHERE officeCode IN (SELECT officeCode FROM offices WHERE country = 'USA');
+
+14. 
+    SELECT customerNumber, customerName
+    FROM customers
+    WHERE customerNumber IN (SELECT customerNumber FROM orders GROUP BY customerNumber HAVING COUNT(orderNumber) > 3);
+
+15. 
+    SELECT employeeNumber, firstName, lastName
+    FROM employees
+    WHERE email IS NULL;
+
+16. 
+    SELECT orderNumber
+    FROM orderdetails
+    WHERE orderNumber IN (SELECT orderNumber FROM orderdetails GROUP BY orderNumber HAVING COUNT(DISTINCT productLine) > 1);
+
+17. 
+    SELECT employeeNumber, firstName, lastName
+    FROM employees
+    WHERE jobTitle = (SELECT jobTitle FROM employees WHERE employeeNumber = employees.reportsTo);
+
+18. 
+    SELECT customerNumber
+    FROM customers
+    WHERE salesRepEmployeeNumber IN (SELECT employeeNumber FROM employees WHERE officeCode <> (SELECT officeCode FROM employees WHERE employeeNumber = customers.salesRepEmployeeNumber));
+
+19. 
+    SELECT productCode, productName
+    FROM products
+    WHERE productCode IN (SELECT productCode FROM products GROUP BY productCode HAVING COUNT(DISTINCT productVendor) > 1);
+
+20. 
+    SELECT orderNumber
+    FROM orders
+    WHERE orderDate >= CURDATE() - INTERVAL 30 DAY;
